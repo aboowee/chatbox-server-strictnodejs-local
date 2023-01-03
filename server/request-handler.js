@@ -12,7 +12,26 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
+// These headers will allow Cross-Origin Resource Sharing (CORS).
+// This code allows this server to talk to websites that
+// are on different domains, for instance, your chat client.
+//
+// Your chat client is running from a url like file://your/chat/client/index.html,
+// which is considered a different domain.
+//
+// Another way to get around this restriction is to serve you chat
+// client from this domain by setting up static file serving.
+
+var defaultCorsHeaders = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'access-control-allow-headers': 'content-type, accept, authorization',
+  'access-control-max-age': 10 // Seconds.
+};
+
 var requestHandler = function(request, response) {
+
+  var headers = defaultCorsHeaders;
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -33,7 +52,7 @@ var requestHandler = function(request, response) {
   var statusCode = 200;
 
   // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
+
 
   // Tell the client we are sending them plain text.
   //
@@ -55,18 +74,41 @@ var requestHandler = function(request, response) {
   response.end('Hello, World!');
 };
 
-// These headers will allow Cross-Origin Resource Sharing (CORS).
-// This code allows this server to talk to websites that
-// are on different domains, for instance, your chat client.
-//
-// Your chat client is running from a url like file://your/chat/client/index.html,
-// which is considered a different domain.
-//
-// Another way to get around this restriction is to serve you chat
-// client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept, authorization',
-  'access-control-max-age': 10 // Seconds.
-};
+
+
+module.exports.requestHandler = requestHandler;
+
+
+http.createServer((request, response) => { //<--- This is requestHandler, to be erased
+  const { headers, method, url } = request; //var headers = defaultCorsHeaders;
+  let body = []; // This is where the data is stored
+  request.on('error', (err) => { // If there is an error in request, will console log error
+    console.error(err);
+  }).on('data', (chunk) => { //Otherwise, once data is received, push into storage
+    body.push(chunk);
+  }).on('end', () => { //Response goes in here, at the end of receiving data request
+
+    body = Buffer.concat(body).toString(); //Body is now reassigned using storage and ?Buffer?
+
+    response.on('error', (err) => { //Error on response, console log error
+      console.error(err);
+    });
+
+    headers['Content-Type'] = 'text/plain'; //
+    response.writeHead(statusCode, headers);
+
+    /*  response.statusCode = 200;
+    response.setHeader('Content-Type', 'application/json');
+    Note: the 2 lines above could be replaced with this next one:
+    response.writeHead(200, {'Content-Type': 'application/json'}) */
+
+    const responseBody = { headers, method, url, body };
+
+    response.write(JSON.stringify(responseBody));
+    response.end();
+    // Note: the 2 lines above could be replaced with this next one:
+    // response.end(JSON.stringify(responseBody))
+
+    // END OF NEW STUFF
+  });
+}).listen(8080);
