@@ -36,47 +36,33 @@ let body = []; // This is where the data is stored
 var requestHandler = function(request, response) {
 
   const { method, url } = request;
+  console.log(url);
 
   var headers = defaultCorsHeaders;
 
   let data = ''; //{text, username, roomname}
 
-  request.on('error', (err) => { // If there is an error in request, will console log error
-    console.error(err);
-  });
-  request.on('data', (chunk) => { //Otherwise, once data is received, push into storage
-    data = chunk.toString();
-  });
-  request.on('end', () => { //Response goes in here, at the end of receiving data request
+  console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
-    response.on('error', (err) => { //Error on response, console log error
-      console.error(err);
+  headers['Content-Type'] = 'application/json';
+
+  if (method === 'GET' && url.includes('/classes/messages')) {
+    response.writeHead(200, headers);
+    response.end(JSON.stringify(body));
+  } else if (method === 'POST' && url.includes('/classes/messages')) {
+    request.on('data', (chunk) => {
+      data = JSON.parse(chunk);
     });
-
-
-    console.log('Serving request type ' + request.method + ' for url ' + request.url);
-
-    var statusCode = 200;
-
-    headers['Content-Type'] = 'application/json';
-
-    if (method === 'GET' && url.includes('/classes/messages')) {
-      response.writeHead(statusCode, headers);
-      response.end(JSON.stringify(body));
-    }
-    if (method === 'POST' && url.includes('/classes/messages')) {
+    request.on('end', () => { //Response goes in here, at the end of receiving data request
       body.push(data);
-      response.writeHead(statusCode, headers);
+      response.writeHead(201, headers);
       response.end();
-    }
-
-
-    //response.end(whatever you want in here);
-    //response.end(JSON.stringify(body));
-  });
+    });
+  } else {
+    response.writeHead(404, headers);
+    response.end();
+  }
 
 };
-
-
 
 module.exports = { requestHandler };
