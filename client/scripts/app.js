@@ -27,6 +27,7 @@ var App = {
         Rooms.update(data, RoomsView.render);
         Messages.update(data, MessagesView.render);
       }
+      App.stopSpinner()
       callback();
       return;
     });
