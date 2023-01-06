@@ -40,23 +40,43 @@ var requestHandler = function(request, response) {
 
   var headers = defaultCorsHeaders;
 
-  let data = ''; //{text, username, roomname}
+  let data = {}; //{text, username, roomname}
 
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
   headers['Content-Type'] = 'application/json';
-
+  // [{c},{b},,{a}]
+  //{n}
+  // {c}
+  // {b}
+  // {b}
+  // unshift({n})
   if (method === 'GET' && url.includes('/classes/messages')) {
     response.writeHead(200, headers);
     response.end(JSON.stringify(body));
+
   } else if (method === 'POST' && url.includes('/classes/messages')) {
+    var check = 0;
+
     request.on('data', (chunk) => {
       data = JSON.parse(chunk);
+      if (!Object.keys(data).length) {
+        check = 1;
+      }
+
     });
     request.on('end', () => { //Response goes in here, at the end of receiving data request
-      body.push(data);
-      response.writeHead(201, headers);
-      response.end();
+      if (!check) {
+        body.unshift(data);
+        response.writeHead(201, headers);
+        response.end();
+      } else {
+        response.writeHead(404, headers);
+        response.end();
+
+      }
+      //if check = 1
+
     });
   } else {
     response.writeHead(404, headers);
@@ -66,3 +86,7 @@ var requestHandler = function(request, response) {
 };
 
 module.exports = { requestHandler };
+
+
+//Client posts not an object
+//

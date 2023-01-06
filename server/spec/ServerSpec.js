@@ -61,6 +61,7 @@ describe('Node Server Request Listener Function', function() {
       text: 'Do my bidding!'
     };
     var req = new stubs.request('/classes/messages', 'POST', stubMsg);
+
     var res = new stubs.response();
 
     handler.requestHandler(req, res);
@@ -89,6 +90,69 @@ describe('Node Server Request Listener Function', function() {
 
     expect(res._responseCode).to.equal(404);
     expect(res._ended).to.equal(true);
+  });
+
+  it('Should have the length of 2 when you do two post request', function() {
+
+    var text = {
+      username: 'Jack',
+      text: 'Hello World'
+
+    };
+    var textOne = {
+      username: 'Jacob',
+      text: 'Goodnight World'
+    };
+
+    var req = new stubs.request('/classes/messages', 'POST', text);
+    var res = new stubs.response();
+    handler.requestHandler(req, res);
+
+    var req = new stubs.request('/classes/messages', 'POST', textOne);
+    var res = new stubs.response();
+    handler.requestHandler(req, res);
+
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+    handler.requestHandler(req, res);
+
+    var messages = JSON.parse(res._data);
+    expect(messages.length).to.equal(4); //2 results from previous tests accounts in here
+
+  });
+
+  it('it should show the most recent message first', function() {
+    var recentText = {
+      username: 'Joe',
+      text: 'Good morning World'
+    };
+
+    var req = new stubs.request('/classes/messages', 'POST', recentText);
+    var res = new stubs.response();
+    handler.requestHandler(req, res);
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+    handler.requestHandler(req, res);
+
+    var messages = JSON.parse(res._data);
+    expect(messages[0].username).to.equal('Joe');
+  });
+
+  it('Should not POST an empty object into data', function() {
+
+    var empty = {};
+
+    var req = new stubs.request('/classes/messages', 'POST', empty);
+    var res = new stubs.response();
+    handler.requestHandler(req, res);
+
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+    handler.requestHandler(req, res);
+
+    var messages = JSON.parse(res._data);
+    expect(messages.length).to.equal(5); //Results from previous tests
+
   });
 
 });
