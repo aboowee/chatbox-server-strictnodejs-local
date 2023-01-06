@@ -51,7 +51,7 @@ var requestHandler = function(request, response) {
   // {b}
   // {b}
   // unshift({n})
-  if (method === 'GET' && url.includes('/classes/messages')) {
+  if ((method === 'GET' || method === 'OPTIONS') && url.includes('/classes/messages')) {
     response.writeHead(200, headers);
     response.end(JSON.stringify(body));
 
