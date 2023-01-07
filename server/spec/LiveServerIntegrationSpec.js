@@ -65,5 +65,42 @@ describe('server', function() {
     });
   });
 
+  it('should return a length of 3 after POSTING 3 messages', function(done) {
+
+    var requestParams = {method: 'POST',
+      uri: 'http://127.0.0.1:3000/classes/messages',
+      json: {
+        username: 'Yolo',
+        text: 'Swag'}
+    };
+    for (var i = 0; i < 3; i++) {
+      request(requestParams, function(error, response, body) {
+      // Now if we request the log, that message we posted should be there:
+      });
+    }
+
+    request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
+      var messages = JSON.parse(body);
+      //Initialize messages outside this function
+      expect(messages.length).to.equal(5);
+      done();
+    });
+  });
+
+  it('should NOT add Empty Object into data', function(done) {
+    var requestParams = {method: 'POST',
+      uri: 'http://127.0.0.1:3000/classes/messages',
+      json: {}
+    };
+
+    request(requestParams, function(error, response, body) {
+      // Now if we request the log, that message we posted should be there:
+      request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
+        var messages = JSON.parse(body);
+        expect(messages.length).to.equal(5);
+        done();
+      });
+    });
+  });
 
 });
