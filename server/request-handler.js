@@ -32,7 +32,7 @@ var defaultCorsHeaders = {
 };
 
 let body = []; // This is where the data is stored
-
+let uniqueID = 0;
 var requestHandler = function(request, response) {
 
   const { method, url } = request;
@@ -45,28 +45,27 @@ var requestHandler = function(request, response) {
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
   headers['Content-Type'] = 'application/json';
-  // [{c},{b},,{a}]
-  //{n}
-  // {c}
-  // {b}
-  // {b}
-  // unshift({n})
+
   if ((method === 'GET' || method === 'OPTIONS') && url.includes('/classes/messages')) {
     response.writeHead(200, headers);
     response.end(JSON.stringify(body));
 
   } else if (method === 'POST' && url.includes('/classes/messages')) {
-    var check = 0;
+    var time = new Date();
+    var objectChecker = 0;
 
     request.on('data', (chunk) => {
       data = JSON.parse(chunk);
       if (!Object.keys(data).length) {
-        check = 1;
+        objectChecker = 1;
       }
+      data.createdAt = time;
+      data.uniqueID = uniqueID;
+      uniqueID++;
 
     });
     request.on('end', () => { //Response goes in here, at the end of receiving data request
-      if (!check) {
+      if (!objectChecker) {
         body.unshift(data);
         response.writeHead(201, headers);
         response.end();
